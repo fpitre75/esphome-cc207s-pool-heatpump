@@ -57,8 +57,8 @@ firmware lui-même n'est pas testé automatiquement.
 
 ## Comment ce projet a été fait
 
-L'auteur est un technicien en câblodistribution passionné d'électronique, pas un
-programmeur de métier. La méthode est physique et mesurée : débrancher les sondes
+L’auteur est technicien en électronique de formation, travaillant comme technicien de maintenance en câblodistribution, et non programmeur de métier.
+La méthode est physique et mesurée : débrancher les sondes
 une à une, ouvrir les contacts de sécurité, appuyer sur le clavier avec un
 chronomètre, enregistrer le bus et comparer avec des sondes de température
 indépendantes. Le **code et la documentation ont été produits avec l'aide de
