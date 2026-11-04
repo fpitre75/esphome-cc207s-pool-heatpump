@@ -126,8 +126,8 @@ is a related project for the ECOLO-80 with different interface hardware.
 
 ## How this was made
 
-The author is a hardware person (a cable-TV maintenance technician), not a
-professional programmer. The method was physical and measured: unplug sensors one
+The author is an electronics technician by training, working as a cable-TV maintenance technician, and not a professional programmer.
+The method was physical and measured: unplug sensors one
 at a time, open the safety contacts, press keypad buttons with a stopwatch, log the
 bus, and compare against independent temperature probes. The **code and the
 write-up were produced with AI assistance (Anthropic's Claude)**, working from
