@@ -1,0 +1,527 @@
+# =============================================================================
+# CC207S-V2.0 pool/spa heat pump controller -- publishable example config
+#
+# Targets the Guangdong Chico Electronic CC207S controller (tested on V2.0
+# only; other versions probably work but are untested) board, found in Turcotte TTi, Hayward, and other rebadged heat pumps that
+# share the same controller and keypad protocol. Only a Turcotte TTi ECOLO 50
+# has actually been tested -- see the README. Full byte-map documentation and
+# test methodology: docs/CC207S-protocole.md. Wiring notes: docs/wiring.md.
+#
+# Before you flash:
+#   1. Copy secrets.yaml.example to secrets.yaml (next to this file or in your
+#      ESPHome config folder) and fill it in. Never commit the real one.
+#   2. Change pin_txrx and the timezone below to match your installation.
+#   3. First boot with the "Active Mode" switch OFF (passive, listen-only) and
+#      check that telemetry looks sane before letting the component transmit.
+#
+# This file intentionally keeps the schedule feature minimal: it only
+# switches the heat pump ON and OFF at two fixed times, exactly like the
+# physical keypad's own ON/OFF timer -- it never touches the setpoint. Adjust
+# the setpoint any time, from Home Assistant or the setpoint slider below;
+# the schedule will never overwrite it. If you want more elaborate scheduling
+# (different setpoints by time of day, etc.), that's a natural next step to
+# build on top of this base -- see the "Setpoint °F" number below for the
+# entity to drive from your own automation.
+# =============================================================================
+
+esphome:
+  name: heatpump-cc207s
+  friendly_name: Thermopompe Piscine TTI
+
+esp32:
+  variant: esp32
+  flash_size: 4MB
+  framework:
+    type: esp-idf
+    advanced:
+      sram1_as_iram: true
+      minimum_chip_revision: "3.0"
+
+logger:
+  level: DEBUG
+  baud_rate: 115200
+  logs:
+    cc207s: DEBUG   # this component's own log tag
+    hwp: DEBUG      # hardware/RMT bus layer (kept intentionally unmodified
+                     # from the upstream sle118/hayward_pool_heater project
+                     # this component was simplified from -- see the
+                     # component's own header comments)
+    bus: WARN
+    component: WARN
+
+api:
+  encryption:
+    key: !secret api_key_heatpump
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: ESP32 Fallback Hotspot
+    password: !secret ap_password
+  # If Wi-Fi never manages to connect at all (not just a flaky mDNS lookup),
+  # reboot automatically after 5 minutes instead of sitting indefinitely
+  # with no usable network.
+  reboot_timeout: 5min
+
+# ESPHome's safe_mode (automatic rollback to the previous firmware if the new
+# one never comes up) is on by default; these values just make it react
+# faster than the defaults (10 attempts) if something goes wrong after a
+# flash.
+safe_mode:
+  num_attempts: 5
+  reboot_timeout: 5min
+
+web_server:
+  version: 3
+  port: 80
+  sorting_groups:
+    # Web UI v3 shows built-in tabs ("Sensor and Control", "Configuration",
+    # "Diagnostic") in a fixed order. A weight of 0.5 puts this group's tab
+    # second, right after "Sensor and Control" and ahead of Configuration and
+    # Diagnostic. Raise it (e.g. to 50) to push the tab to the end instead.
+    - id: grp_schedule
+      name: "Schedule"
+      sorting_weight: 0.5
+
+captive_portal:
+
+# Component source. The first block uses the copy of the component that sits in
+# this repository (examples/ -> ../components). To use the component from your
+# own ESPHome config folder without cloning the repo, use the git block instead
+# (this repository).
+external_components:
+  - source:
+      type: local
+      path: ../components
+    components: [cc207s]
+  # - source:
+  #     type: git
+  #     url: https://github.com/fpitre75/esphome-cc207s-pool-heatpump
+  #     ref: main
+  #   components: [cc207s]
+
+# =============================================================================
+# CC207S-V2.0 heat pump
+#
+# pin_txrx: the single GPIO wired to the controller's bus (half-duplex,
+# ~500 baud, RMT-decoded). Change GPIO27 below to match your own wiring.
+# =============================================================================
+climate:
+  - platform: cc207s
+    id: heat_pump
+    name: "Heat Pump"
+    pin_txrx: GPIO27
+    # The controller broadcasts a telemetry frame roughly every 6s; polling
+    # any slower risks missing a short-lived fault (e.g. a flow switch that
+    # opens for only a few seconds) even though the component decoded it
+    # internally.
+    update_interval: 5s
+
+    active_mode_switch:
+      name: "Active Mode"
+      restore_mode: ALWAYS_ON
+
+    update_sensors_switch:
+      name: "Update Sensors"
+      restore_mode: ALWAYS_ON
+      internal: true
+
+    # The three refrigerant-circuit temperatures are filed under the web UI's
+    # "Diagnostic" tab (they are troubleshooting data, not something you act
+    # on); ambient air stays on the main tab. Home Assistant follows the same
+    # entity_category.
+    t_suction:
+      name: "Heatpump: Suction Temperature"
+      entity_category: diagnostic
+    t_defrost:
+      name: "Heatpump: Defrost Temperature"
+      entity_category: diagnostic
+    t_ambient:
+      name: "Ambient Air Temperature"
+    t_discharge:
+      name: "Heatpump: Discharge Temperature"
+      entity_category: diagnostic
+
+    # "OK" or a space-separated list such as "P3 (defrost sensor) P5 (ambient
+    # sensor)". Heads-up: P3/P4/P5 latch on freezing nights and can stay set
+    # for hours at ambient temperatures well above 0 C -- even with the heat
+    # pump switched off for the winter (docs/CC207S-protocole.md, section 6).
+    # Do not alert on every change of this sensor if you leave it powered all
+    # winter; alert on E1/E2/E3/E4/P1/P2 instead.
+    fault_codes:
+      name: "Fault Code"
+
+    unknown_bits_detected:
+      name: "Unknown Bit Detected"
+
+    compressor_not_compressing:
+      name: "Compressor Not Compressing"
+
+    # Fires if no frame at all has been seen for ~60s -- a broken bus wire,
+    # a powered-off controller, or a disconnected adapter.
+    bus_communication_lost:
+      name: "Bus Communication Lost"
+
+    # Fires if the last injected command was not echoed back within the
+    # acknowledgement timeout. Observation only -- does not retry.
+    command_not_confirmed:
+      name: "Command Not Confirmed"
+
+    # Plain relay-state indicators (not faults) -- useful for correlating a
+    # sensor fault (e.g. P4) against real compressor/fan start-stop
+    # transients in Home Assistant's history graphs.
+    compressor_on:
+      name: "Compressor On"
+    fan_on:
+      name: "Fan On"
+
+# -----------------------------------------------------------------------------
+# Fahrenheit display (template sensors) -- no device_class, so Home Assistant
+# doesn't auto-convert these back to its own configured unit system.
+# -----------------------------------------------------------------------------
+sensor:
+  - platform: template
+    name: "Water Temperature °F"
+    id: water_temp_f
+    unit_of_measurement: "°F"
+    accuracy_decimals: 0
+    icon: "mdi:pool-thermometer"
+    update_interval: 10s
+    lambda: |-
+      float c = id(heat_pump).current_temperature;
+      if (isnan(c)) return {};
+      return c * 9.0f / 5.0f + 32.0f;
+
+  - platform: template
+    name: "Target Temperature °F"
+    id: target_temp_f
+    unit_of_measurement: "°F"
+    accuracy_decimals: 0
+    icon: "mdi:thermometer-check"
+    update_interval: 10s
+    lambda: |-
+      float c = id(heat_pump).target_temperature;
+      if (isnan(c)) return {};
+      return c * 9.0f / 5.0f + 32.0f;
+
+  - platform: template
+    name: "Water Temperature °C"
+    id: water_temp_c
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    icon: "mdi:pool-thermometer"
+    update_interval: 10s
+    lambda: |-
+      float c = id(heat_pump).current_temperature;
+      if (isnan(c)) return {};
+      return c;
+
+  - platform: template
+    name: "Target Temperature °C"
+    id: target_temp_c
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    icon: "mdi:thermometer-check"
+    update_interval: 10s
+    lambda: |-
+      float c = id(heat_pump).target_temperature;
+      if (isnan(c)) return {};
+      return c;
+
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    update_interval: 300s
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+    ssid:
+      name: SSID
+    mac_address:
+      name: MAC
+
+  - platform: version
+    name: "ESPHome Version"
+    disabled_by_default: true
+
+button:
+  - platform: restart
+    name: "Restart"
+    icon: "mdi:restart"
+
+# =============================================================================
+# ON/OFF timer -- emulates the physical keypad's own timer feature only.
+#
+# By design this does NOT touch the setpoint at all, and does NOT try to
+# force the pump/fan off beyond what the controller already does on its own
+# when powered OFF (see docs/CC207S-protocole.md -- powering OFF over the
+# bus stops the compressor but leaves fan/pump/crankcase heater running,
+# exactly like a keypad OFF). A published component can't assume how the
+# filter pump or other equipment is wired on a given installation, so it
+# only emulates the keypad -- anyone who wants more (e.g. also stopping
+# their own filter pump) builds that in their own automation, keyed off the
+# "Heat Pump" climate entity's mode.
+# =============================================================================
+globals:
+  # Grace window for the "Setpoint °F" slider below (see its set_action and
+  # the interval: block further down). Without this, moving the slider
+  # triggers an injection whose real confirmation (0xD2 echo) takes 4-10s;
+  # in that window the periodic resync check below would see the OLD
+  # setpoint still on the controller, "correct" the slider back, then
+  # correct it again once the echo lands -- visible as the slider jumping to
+  # the requested value, reverting briefly, then settling.
+  - id: setpoint_write_at_ms
+    type: uint32_t
+    restore_value: false
+    initial_value: '0'
+
+  # Requested value from the last slider move, checked against the real
+  # echoed value rather than guessed via a fixed timeout.
+  - id: setpoint_expected_value
+    type: float
+    restore_value: false
+    initial_value: 'NAN'
+
+time:
+  - platform: sntp
+    id: local_time
+    timezone: America/Toronto   # change to your own timezone
+    servers:
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
+      - pool.ntp.org
+    on_time:
+      - seconds: 0
+        then:
+          - script.execute: apply_schedule
+
+switch:
+  - platform: template
+    name: "Schedule Enable"
+    id: schedule_enabled
+    icon: "mdi:calendar-clock"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    web_server:
+      sorting_group_id: grp_schedule
+      sorting_weight: 10
+    on_turn_on:
+      - script.execute: apply_schedule
+    # on_turn_off intentionally does nothing beyond flipping the switch
+    # state: the heat pump is left exactly as it is, under manual control,
+    # until the schedule is turned back on.
+
+number:
+  # ---------------------------------------------------------------------
+  # Main setpoint, in °F -- a native slider synced with the climate entity
+  # (which stays in Celsius internally; the controller only understands
+  # 0.5C steps).
+  #
+  # Moving this slider converts to °C (rounded to the controller's real
+  # 0.5C resolution) and writes directly to the climate entity.
+  #
+  # In the OTHER direction -- if the setpoint changes via the climate
+  # entity's own Celsius control, the physical keypad, or Home Assistant --
+  # this slider resyncs itself via the interval: block below (checked every
+  # 5s). publish_state() never re-triggers set_action, so there's no loop
+  # between the two.
+  # ---------------------------------------------------------------------
+  - platform: template
+    name: "Setpoint °F"
+    id: setpoint_f
+    icon: "mdi:thermometer-check"
+    unit_of_measurement: "°F"
+    min_value: 59
+    max_value: 91
+    step: 1
+    initial_value: 82
+    restore_value: false   # the real source of truth is the climate entity
+    mode: slider
+    set_action:
+      - lambda: |-
+          id(setpoint_f).publish_state(x);
+          float c = (x - 32.0f) * 5.0f / 9.0f;
+          c = roundf(c * 2.0f) / 2.0f;
+          auto call = id(heat_pump).make_call();
+          call.set_target_temperature(c);
+          call.perform();
+          // Arm the confirmation wait: the periodic resync check below
+          // won't touch this slider until the real echo (0xD2) confirms
+          // the requested value -- see interval: below.
+          id(setpoint_write_at_ms) = esphome::millis();
+          id(setpoint_expected_value) = x;
+
+  - platform: template
+    name: "Schedule — On Hour"
+    id: schedule_on_hour
+    icon: "mdi:weather-sunny"
+    min_value: 0
+    max_value: 23
+    step: 1
+    initial_value: 8
+    optimistic: true
+    restore_value: true
+    mode: slider
+    web_server:
+      sorting_group_id: grp_schedule
+      sorting_weight: 20
+
+  - platform: template
+    name: "Schedule — On Minute"
+    id: schedule_on_minute
+    icon: "mdi:weather-sunny"
+    min_value: 0
+    max_value: 45
+    step: 15
+    initial_value: 0
+    optimistic: true
+    restore_value: true
+    mode: slider
+    web_server:
+      sorting_group_id: grp_schedule
+      sorting_weight: 30
+
+  - platform: template
+    name: "Schedule — Off Hour"
+    id: schedule_off_hour
+    icon: "mdi:weather-night"
+    min_value: 0
+    max_value: 23
+    step: 1
+    initial_value: 22
+    optimistic: true
+    restore_value: true
+    mode: slider
+    web_server:
+      sorting_group_id: grp_schedule
+      sorting_weight: 40
+
+  - platform: template
+    name: "Schedule — Off Minute"
+    id: schedule_off_minute
+    icon: "mdi:weather-night"
+    min_value: 0
+    max_value: 45
+    step: 15
+    initial_value: 30
+    optimistic: true
+    restore_value: true
+    mode: slider
+    web_server:
+      sorting_group_id: grp_schedule
+      sorting_weight: 50
+
+# -----------------------------------------------------------------------------
+# Resync the "Setpoint °F" slider with the climate entity
+#
+# The slider writes to the climate entity via set_action (above), but
+# nothing tells it if the setpoint changes through another path -- the
+# climate entity's own Celsius control, the physical keypad. This periodic
+# check compares the two and republishes the slider if they've drifted
+# apart.
+#
+# 5s rather than something slower: this is a pure display copy --
+# publish_state() never triggers an EEPROM write or a bus injection, so
+# there's no cost to reacting quickly.
+# -----------------------------------------------------------------------------
+interval:
+  - interval: 5s
+    then:
+      - lambda: |-
+          float actual_c = id(heat_pump).target_temperature;
+          if (isnan(actual_c)) return;
+          float actual_f = roundf(actual_c * 9.0f / 5.0f + 32.0f);
+
+          bool write_pending = (id(setpoint_write_at_ms) != 0);
+          if (write_pending) {
+            int32_t since_write_ms =
+                (int32_t) (esphome::millis() - id(setpoint_write_at_ms));
+
+            if (fabsf(actual_f - id(setpoint_expected_value)) < 0.5f) {
+              // Confirmed: the real value finally matches what was
+              // requested. Disarm immediately, no need to wait for the
+              // fallback timeout below.
+              id(setpoint_write_at_ms) = 0;
+              return;
+            }
+
+            if (since_write_ms >= 0 && since_write_ms < 25000) {
+              // Still within the normal confirmation window -- do nothing
+              // rather than risk showing a stale/incorrect value.
+              return;
+            }
+
+            // Fallback timeout elapsed with no confirmation: the injection
+            // likely failed. Give up waiting and show the real current
+            // value (honest, even if it isn't what was requested) instead
+            // of continuing to display a value that never materialized.
+            id(setpoint_write_at_ms) = 0;
+            ESP_LOGW("cc207s", "Setpoint °F not confirmed after 25s -- "
+                     "injection likely lost, showing actual current value");
+          }
+
+          if (fabsf(actual_f - id(setpoint_f).state) > 0.5f) {
+            id(setpoint_f).publish_state(actual_f);
+          }
+
+script:
+  - id: apply_schedule
+    mode: restart
+    then:
+      - lambda: |-
+          if (!id(schedule_enabled).state) return;
+
+          auto now = id(local_time).now();
+          if (!now.is_valid()) {
+            // SNTP not synced yet: don't decide anything rather than risk
+            // applying the wrong state.
+            ESP_LOGW("schedule", "Time not synced yet, schedule skipped");
+            return;
+          }
+
+          int now_min = now.hour * 60 + now.minute;
+          int on_min = (int) id(schedule_on_hour).state * 60 +
+                       (int) id(schedule_on_minute).state;
+          int off_min = (int) id(schedule_off_hour).state * 60 +
+                        (int) id(schedule_off_minute).state;
+
+          // The ON period runs from on_min to off_min. If off_min is
+          // earlier than on_min, the ON period wraps past midnight.
+          bool should_be_on;
+          if (on_min <= off_min) {
+            should_be_on = (now_min >= on_min && now_min < off_min);
+          } else {
+            should_be_on = (now_min >= on_min || now_min < off_min);
+          }
+
+          bool currently_on = (id(heat_pump).mode != climate::CLIMATE_MODE_OFF);
+          if (should_be_on == currently_on) return;   // nothing to do
+
+          ESP_LOGI("schedule", "Timer switching heat pump %s",
+                   should_be_on ? "ON" : "OFF");
+          auto call = id(heat_pump).make_call();
+          call.set_mode(should_be_on ? climate::CLIMATE_MODE_HEAT
+                                      : climate::CLIMATE_MODE_OFF);
+          call.perform();
+
+# =============================================================================
+# NOTES
+#
+# - The cc207s component's "Active Mode" switch must be ON, or any command
+#   built here (schedule or setpoint slider) is constructed but never sent
+#   (passive/read-only mode).
+#
+# - Powering OFF over the bus stops the compressor only -- fan, pump and
+#   crankcase heater are left running by the controller itself, exactly as
+#   the physical keypad's own OFF does. This is documented controller
+#   behaviour, not a bug in this component (see docs/CC207S-protocole.md).
+#
+# - Turning "Schedule Enable" off leaves the heat pump exactly as it is,
+#   under full manual/keypad/Home-Assistant control, until it's turned back
+#   on.
+# =============================================================================

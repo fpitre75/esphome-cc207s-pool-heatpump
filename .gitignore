@@ -1,0 +1,13 @@
+# Secrets and local ESPHome state -- never commit
+secrets.yaml
+.esphome/
+**/.esphome/
+*.bin
+build/
+__pycache__/
+*.pyc
+.venv/
+venv/
+# Raw captures and personal exports
+*.csv
+*-logs*.txt
