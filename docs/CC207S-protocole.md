@@ -27,7 +27,7 @@ Contents
 
 ## 1. Physical layer
 
-* The controller board, the wall keypad and (in this project) the ESP32 share
+* The controller board, the keypad and (in this project) the ESP32 share
   **one half-duplex data line plus ground**. The keypad is a full participant on
   that wire: it both displays what the controller sends and transmits commands.
 * Signalling is slow, roughly **500 baud**. The component does not use a UART:
@@ -384,7 +384,7 @@ protocol has **not** been checked.
 
 ### Keypad board (author's unit)
 
-The wall keypad (label `HL318030`) contains a board marked **CC343C-V2.1**
+The keypad (label `HL318030`) contains a board marked **CC343C-V2.1**
 (`W181204`). What is visible on the board (photos not included):
 
 * **Front:** a 4-digit seven-segment display, push-buttons `K1`–`K8` (`K3` and

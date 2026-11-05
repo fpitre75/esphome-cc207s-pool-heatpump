@@ -5,7 +5,7 @@
 Local control of a **pool heat pump built around the CC207S-V2.0 controller**
 (Guangdong Chico Electronic) from [ESPHome](https://esphome.io) and Home
 Assistant — no cloud, no keypad replacement. The ESP32 listens to the bus
-between the controller and the wall keypad, decodes the telemetry, and can
+between the controller and the keypad, decodes the telemetry, and can
 change the setpoint and switch the unit on and off the way the keypad does.
 
 It was reverse-engineered on a **Turcotte TTi ECOLO 50** (Quebec). The same board

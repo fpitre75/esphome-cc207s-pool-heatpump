@@ -22,7 +22,7 @@ multimeter on your own unit.
 
 ## What the bus looks like
 
-* The controller, the wall keypad and the ESP32 share **one data wire plus
+* The controller, the keypad and the ESP32 share **one data wire plus
   ground** (half-duplex, about 500 baud — see
   [`CC207S-protocole.md`](CC207S-protocole.md#1-physical-layer)).
 * The ESP32 uses a single GPIO (`pin_txrx`) for receive **and** transmit. The
