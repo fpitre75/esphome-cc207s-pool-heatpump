@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" font-family="Arial, Helvetica, sans-serif" font-size="14">
+<rect width="900" height="520" fill="#ffffff"/>
+<text x="450" y="28" text-anchor="middle" font-size="18" font-weight="bold">CC207S bus interface – block diagram (author's build)</text>
+<text x="450" y="48" text-anchor="middle" font-size="12" fill="#555">Orange dashed = value NOT verified by the author's notes: measure / confirm before copying.</text>
+<!-- heat pump -->
+<rect x="30" y="80" width="200" height="330" rx="8" fill="#eef3fa" stroke="#345"/>
+<text x="130" y="105" text-anchor="middle" font-weight="bold">Heat pump</text>
+<text x="130" y="123" text-anchor="middle" font-size="12">CC207S controller board</text>
+<rect x="50" y="145" width="160" height="40" fill="#fff" stroke="#345"/><text x="130" y="170" text-anchor="middle">DC rail ~16 V (brown)</text>
+<rect x="50" y="220" width="160" height="40" fill="#fff" stroke="#345"/><text x="130" y="245" text-anchor="middle">Bus data (blue)</text>
+<rect x="50" y="295" width="160" height="40" fill="#fff" stroke="#345"/><text x="130" y="320" text-anchor="middle">GND (yellow)</text>
+<text x="130" y="375" text-anchor="middle" font-size="12" fill="#c60">Keypad connector on board: CN3</text>
+<text x="130" y="392" text-anchor="middle" font-size="12" fill="#c60">Bus data ~4.4 V idle (5 V logic)</text>
+<!-- keypad -->
+<rect x="30" y="440" width="200" height="50" rx="8" fill="#f4f4f4" stroke="#345"/><text x="130" y="470" text-anchor="middle">Wall keypad (stays connected)</text>
+<line x1="130" y1="260" x2="130" y2="440" stroke="#345" stroke-dasharray="2 4"/>
+<!-- buck -->
+<rect x="320" y="130" width="150" height="70" rx="8" fill="#e8f6ec" stroke="#274"/>
+<text x="395" y="154" text-anchor="middle" font-weight="bold">Buck MP1584EN mini</text><text x="395" y="174" text-anchor="middle" font-size="11" fill="#274">fixed 5 V out, IN 4.5-28 V</text>
+<!-- esp32 -->
+<rect x="560" y="130" width="170" height="220" rx="8" fill="#e8f6ec" stroke="#274"/>
+<text x="645" y="158" text-anchor="middle" font-weight="bold">ESP32 (WROOM)</text>
+<text x="645" y="176" text-anchor="middle" font-size="12">mini D1 style board</text>
+<text x="645" y="210" text-anchor="middle">5 V / VIN</text>
+<text x="645" y="250" text-anchor="middle">3V3</text>
+<text x="645" y="290" text-anchor="middle">GPIO27 = pin_txrx</text>
+<text x="645" y="330" text-anchor="middle">GND</text>
+<!-- level shifter -->
+<rect x="320" y="250" width="150" height="130" rx="8" fill="#e8f6ec" stroke="#274"/>
+<text x="395" y="272" text-anchor="middle" font-weight="bold">BSS138 level shifter</text>
+<text x="395" y="288" text-anchor="middle" font-size="12">4-channel module</text>
+<text x="395" y="304" text-anchor="middle" font-size="11" fill="#274">channel 1 used (HV1 - LV1)</text>
+<text x="340" y="330" font-size="12">HV</text><text x="340" y="350" font-size="12">HV1</text><text x="340" y="370" font-size="12">GND</text>
+<text x="450" y="330" text-anchor="end" font-size="12">LV</text><text x="450" y="350" text-anchor="end" font-size="12">LV1</text><text x="450" y="370" text-anchor="end" font-size="12">GND</text>
+<!-- wires: +V -> buck -->
+<path d="M210 165 H320" stroke="#8B4513" stroke-width="2" fill="none"/>
+<text x="265" y="158" text-anchor="middle" font-size="12" fill="#8B4513">brown: VCC</text>
+<!-- buck -> esp 5V -->
+<path d="M470 165 H520 V210 H560" stroke="#c00" stroke-width="2" fill="none"/>
+<!-- buck 5V -> shifter HV -->
+<path d="M520 165 V215 H300 V326 H320" stroke="#c00" stroke-width="2" fill="none"/>
+<!-- esp 3V3 -> LV -->
+<path d="M560 250 H500 V326 H470" stroke="#e80" stroke-width="2" fill="none"/>
+<!-- data: bus -> HV1, LV1 -> GPIO27 -->
+<path d="M210 240 H280 V346 H320" stroke="#06c" stroke-width="2" fill="none"/>
+<text x="250" y="233" text-anchor="middle" font-size="12" fill="#06c">blue: data</text>
+<path d="M470 346 H520 V290 H560" stroke="#06c" stroke-width="2" fill="none"/>
+<text x="540" y="322" font-size="12" fill="#06c">3.3 V data</text>
+<!-- ground: single common -->
+<path d="M210 315 H260 V420 H500 V366 H470 M320 366 H260 M500 420 V330 H560" stroke="#d4a800" stroke-width="3" fill="none"/>
+<path d="M395 200 V250" stroke="#000" stroke-width="0"/>
+<text x="250" y="446" font-size="12">Yellow = common GND (all four)</text>
+<text x="250" y="464" font-size="12">(no second, separately powered supply)</text>
+<text x="250" y="482" font-size="12">Buck GND on same line (not drawn).</text>
+<rect x="560" y="400" width="320" height="90" rx="6" fill="#fdecec" stroke="#c00"/>
+<text x="570" y="420" font-size="12" font-weight="bold" fill="#900">Do NOT:</text>
+<text x="570" y="438" font-size="12">• power the ESP32 from another supply (ground loop,</text>
+<text x="570" y="454" font-size="12">  see "Lesson learned" in wiring.md)</text>
+<text x="570" y="470" font-size="12">• put the ESP32 inside the metal heat-pump cabinet</text>
+<text x="395" y="190" text-anchor="middle" font-size="11" fill="#c60">IN ~16 V from brown wire</text>
+<rect x="745" y="195" width="140" height="50" rx="6" fill="#e8f6ec" stroke="#274"/>
+<text x="815" y="214" text-anchor="middle" font-size="12">Capacitor (optional)</text>
+<text x="815" y="232" text-anchor="middle" font-size="11">470 µF on ESP32 5 V pin</text>
+<path d="M730 210 H745" stroke="#c00" stroke-width="2" fill="none"/>
+</svg>
