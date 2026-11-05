@@ -321,3 +321,61 @@ format (unverified).
 * The first write-up called `d8` an undecoded compressor-linked value that
   "resets to `0x23` after a fault clears"; later work treats it as a
   run indicator (`0x23` off, `0x0A` on) — see section 3.
+
+### Sensor connectors (author's unit; confirmed both directions in the first write-up)
+
+The terminal numbering on the board does **not** match the protocol numbering
+for the last two probes: `SEN4` is the ambient probe and `SEN5` the suction
+probe. A **P4** code therefore points at the probe plugged on **SEN5**, not
+SEN4.
+
+| Connector | Wire colour | Probe | Byte | Code |
+|-----------|-------------|-------|------|------|
+| SEN1 | red   | Water     | d1 | P1 |
+| SEN2 | white | Discharge | d2 | P2 |
+| SEN3 | blue  | Defrost   | d3 | P3 |
+| SEN4 | black | Ambient air | d5 | P5 |
+| SEN5 | green | Suction   | d4 | P4 |
+
+More details from that write-up:
+
+* **Timing:** `0xDD` and `0xD2` each repeat every 6.05 s, alternating about
+  3.02 s apart. A 16-minute idle capture held 164 `0xD2` frames and no `0xCC`.
+* **P1** (water probe) also sets `d9` bit `0x01`, together with bit `0x20`.
+* **`d10` values observed:** `0x00` all off, `0x08` pump only, `0x18` fan,
+  `0x1A` fan + compressor. The pump bit drops about 25 s after the fan stops.
+* **Temperature cross-check:** against independent DS18B20 probes the board read
+  27.5 °C water / 23.0 °C air while the external probes read 27.1 °C / 23.9 °C.
+  The board's ambient reading runs slightly low, consistent with a probe in the
+  evaporator airstream.
+* **Keypad display:** the keypad shows whole °F, while the controller works in
+  0.5 °C steps, so one button press moves the raw setpoint by 1 or 2 units.
+* **Open items from that write-up:** the ten constant configuration bytes, the
+  PORT1 lockout error code and `PORT3`–`PORT7` (connectors left unpopulated on
+  the whole CC207S range).
+
+### Relay outputs and board revisions
+
+Relay labels printed on the board (the same layout appears on CC207 boards of
+other revisions, e.g. a CC207-V4.4 from 2012, which also has an `SEN6` header and
+`PORT`/`PROT` inputs 1–7). Which `d10` bit drives which relay was only verified
+for the four rows marked *observed*:
+
+| Relay | Output | Function | `d10` bit |
+|-------|--------|----------|-----------|
+| RY1 | OUT1 | compressor (contactor) | `0x02` (observed) |
+| RY2 | OUT2 | pump | `0x08` (observed) |
+| RY3 | OUT3 | SPA (optional) | not observed |
+| RY4 | OUT4 | 4-way reversing valve (hot/cold; not fitted on a heat-only unit) | not observed |
+| RY5 | OUT5 | high-speed fan | `0x10` (observed, fan) |
+| RY6 | OUT6 | low-speed fan | not observed |
+| RY7 | OUT7 | crankcase heater | `0x01` (observed) |
+
+The manufacturer's wiring diagram for the horizontal 50/65 model (not reproduced
+here) is consistent with the rest of this document: the five sensor connectors
+`SEN1`–`SEN5` are red (water), white (discharge), blue (defrost), black (air) and
+green (suction), the keypad cable is blue / yellow / brown, and the board has
+separate inputs for the flow switch (FS, `E3`), low-pressure (LP, `E2`) and
+high-pressure (HP, `E1`) switches, a transformer in/out pair (CN2/CN8) and a 5 A
+fuse. Whether other board generations (V4.4, V2.1, V2.3) speak the same bus
+protocol has **not** been checked.
