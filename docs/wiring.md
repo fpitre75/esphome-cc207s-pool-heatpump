@@ -13,8 +13,7 @@
 
 On the controller board (label `HL318029`, model `CC207S-V2.0`, firmware label
 `THLCH15.HEX <5883>`), the keypad cable lands on the 3-position connector
-**CN3**: in the photo, left to right, **blue, yellow, brown**. The keypad end
-(`HL318030`) has a 4-pin header with the same three wires. Always confirm with a
+**CN3**: in the photo, left to right, **blue, yellow, brown**. The keypad end (HL318030) has a 3-pin header (CN3) with the same three wires. Always confirm with a
 multimeter on your own unit.
 
 ![Controller board, keypad connector CN3](img/cc207s-board-cn3.jpg)
