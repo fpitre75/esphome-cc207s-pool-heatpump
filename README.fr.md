@@ -4,7 +4,7 @@
 
 Contrôle local d'une **thermopompe de piscine équipée du contrôleur CC207S-V2.0**
 (Guangdong Chico Electronic) avec [ESPHome](https://esphome.io) et Home
-Assistant, sans nuage. L'ESP32 écoute le bus entre la carte et le clavier mural,
+Assistant, sans nuage. L'ESP32 écoute le bus entre la carte et le clavier,
 décode la télémétrie et peut changer la consigne et allumer ou éteindre l'unité
 comme le fait le clavier.
 
