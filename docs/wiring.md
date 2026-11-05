@@ -51,8 +51,6 @@ start of the perfboard version.
 ![Prototype: ESP32, BSS138 shifter, MP1584EN buck](img/prototype-esp32-shifter-buck.jpg)
 ![Perfboard, first stage](img/perfboard-start.jpg)
 
-<<<<<<< Updated upstream
-=======
 ### Installed build
 
 The board in its weatherproof enclosure, fixed under the keypad on the side of
@@ -66,7 +64,6 @@ software and wiring problems are fixed (not tested without it).
 ![Inside the enclosure](img/enclosure-inside.jpg)
 ![Enclosure mounted below the keypad](img/enclosure-installed.jpg)
 
->>>>>>> Stashed changes
 *Cable colours on the author's unit: **blue** = data (single bidirectional open-drain line), **yellow** = ground, **brown** = VCC (about 16 V DC). Block diagram: heat-pump rail → MP1584EN mini buck (fixed 5 V) → ESP32 (5 V); BSS138 shifter between the
 bus data wire and GPIO27; one common ground. Orange items are unverified.*
 
