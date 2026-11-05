@@ -24,6 +24,14 @@ mais rien n'est vérifié pour elles.
 * `docs/CC207S-protocole.md` : protocole, codes de défaut et notes de terrain.
 * `docs/wiring.md` : notes d'interface et leçon sur la boucle de masse.
 
+## Captures
+
+Page de l'appareil dans Home Assistant (thermopompe fermée pour l'hiver : le
+contrôleur affiche donc `E3 (water flow)`).
+
+![Commandes et capteurs](docs/img/ha-device-controls.jpg)
+![Configuration et diagnostic](docs/img/ha-device-diagnostic.jpg)
+
 ## Ce qui est décodé
 
 Consigne, état ON/OFF, températures (eau, air ambiant, aspiration, dégivrage,
@@ -57,8 +65,13 @@ firmware lui-même n'est pas testé automatiquement.
 
 ## Comment ce projet a été fait
 
+<<<<<<< Updated upstream
 L’auteur est technicien en électronique de formation, travaillant comme technicien de maintenance en câblodistribution, et non programmeur de métier.
 La méthode est physique et mesurée : débrancher les sondes
+=======
+L'auteur est technicien en électronique de formation, travaillant comme
+technicien de maintenance en câblodistribution, et non programmeur de métier. La méthode est physique et mesurée : débrancher les sondes
+>>>>>>> Stashed changes
 une à une, ouvrir les contacts de sécurité, appuyer sur le clavier avec un
 chronomètre, enregistrer le bus et comparer avec des sondes de température
 indépendantes. Le **code et la documentation ont été produits avec l'aide de

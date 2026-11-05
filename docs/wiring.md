@@ -6,9 +6,8 @@
 > measurement surprises you. This page describes what worked for one installation;
 > it is not a certified design.
 
-> **Work in progress:** the photos below show the author's *prototype*, not a
-> finished build; final photos will replace them. The shifter channel is still
-> marked *to verify* (see the `TODO` marker).
+> **Work in progress:** the first photos below show the author's *prototype*;
+> the "Installed build" photos show the unit as installed.
 
 ## Where the cable plugs in
 
@@ -52,6 +51,22 @@ start of the perfboard version.
 ![Prototype: ESP32, BSS138 shifter, MP1584EN buck](img/prototype-esp32-shifter-buck.jpg)
 ![Perfboard, first stage](img/perfboard-start.jpg)
 
+<<<<<<< Updated upstream
+=======
+### Installed build
+
+The board in its weatherproof enclosure, fixed under the keypad on the side of
+the heat pump. The ESP32 board (a D1-mini-style ESP32-WROOM-32) sits above the
+perfboard, with the level shifter and the buck module underneath it, so they are
+not visible from the top. A 470 µF electrolytic capacitor, connected directly to the
+5 V pin of the ESP32 board, is visible next to it. It was added as a precaution
+only: its value is not critical, and it is probably optional now that the
+software and wiring problems are fixed (not tested without it).
+
+![Inside the enclosure](img/enclosure-inside.jpg)
+![Enclosure mounted below the keypad](img/enclosure-installed.jpg)
+
+>>>>>>> Stashed changes
 *Cable colours on the author's unit: **blue** = data (single bidirectional open-drain line), **yellow** = ground, **brown** = VCC (about 16 V DC). Block diagram: heat-pump rail → MP1584EN mini buck (fixed 5 V) → ESP32 (5 V); BSS138 shifter between the
 bus data wire and GPIO27; one common ground. Orange items are unverified.*
 
@@ -59,8 +74,8 @@ bus data wire and GPIO27; one common ground. Orange items are unverified.*
   one and the author avoided introducing an untested chip family while chasing a
   ground problem (below). The RMT driver is used through ESP-IDF.
 * A **BSS138 bidirectional 4-channel level shifter** between the bus and
-  the GPIO (high side = bus voltage, low side = 3.3 V), data on one channel.
-  `TODO(maintainer)`: add which channel/pins and a photo.
+  the GPIO (high side = bus voltage, low side = 3.3 V). Only **channel 1**
+  (`HV1` ↔ `LV1`) is used; the other three are unused.
 * The ESP32 board was powered from the **heat pump's own low-voltage DC rail
   through a small fixed-5 V buck module (MP1584EN, 3 A class, input about 4.5–28 V per the chip datasheet; check that the rail stays within that range)** in the first, keypad-emulation build, so that its
   ground is the controller's ground by construction.

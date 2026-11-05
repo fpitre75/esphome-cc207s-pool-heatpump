@@ -26,10 +26,10 @@
 <text x="645" y="290" text-anchor="middle">GPIO27 = pin_txrx</text>
 <text x="645" y="330" text-anchor="middle">GND</text>
 <!-- level shifter -->
-<rect x="320" y="250" width="150" height="130" rx="8" fill="#fff6e5" stroke="#c60" stroke-dasharray="6 4"/>
+<rect x="320" y="250" width="150" height="130" rx="8" fill="#e8f6ec" stroke="#274"/>
 <text x="395" y="272" text-anchor="middle" font-weight="bold">BSS138 level shifter</text>
-<text x="395" y="288" text-anchor="middle" font-size="12">4-channel, 1 channel used</text>
-<text x="395" y="304" text-anchor="middle" font-size="11" fill="#c60">channel / HV: TO VERIFY</text>
+<text x="395" y="288" text-anchor="middle" font-size="12">4-channel module</text>
+<text x="395" y="304" text-anchor="middle" font-size="11" fill="#274">channel 1 used (HV1 - LV1)</text>
 <text x="340" y="330" font-size="12">HV</text><text x="340" y="350" font-size="12">HV1</text><text x="340" y="370" font-size="12">GND</text>
 <text x="450" y="330" text-anchor="end" font-size="12">LV</text><text x="450" y="350" text-anchor="end" font-size="12">LV1</text><text x="450" y="370" text-anchor="end" font-size="12">GND</text>
 <!-- wires: +V -> buck -->
@@ -58,4 +58,8 @@
 <text x="570" y="454" font-size="12">  see "Lesson learned" in wiring.md)</text>
 <text x="570" y="470" font-size="12">• put the ESP32 inside the metal heat-pump cabinet</text>
 <text x="395" y="190" text-anchor="middle" font-size="11" fill="#c60">IN ~16 V from brown wire</text>
+<rect x="745" y="195" width="140" height="50" rx="6" fill="#e8f6ec" stroke="#274"/>
+<text x="815" y="214" text-anchor="middle" font-size="12">Capacitor (optional)</text>
+<text x="815" y="232" text-anchor="middle" font-size="11">470 µF on ESP32 5 V pin</text>
+<path d="M730 210 H745" stroke="#c00" stroke-width="2" fill="none"/>
 </svg>

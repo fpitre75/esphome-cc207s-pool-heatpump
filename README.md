@@ -36,6 +36,14 @@ and keypad protocol are reported in Hayward and other rebadged heat pumps, but
 setpoint slider in °F and a minimal daily ON/OFF timer that, like the keypad's
 own timer, never touches the setpoint.
 
+## Screenshots
+
+Device page in Home Assistant (heat pump shut down for the winter, so the
+controller reports `E3 (water flow)`).
+
+![Controls and sensors](docs/img/ha-device-controls.jpg)
+![Configuration and diagnostics](docs/img/ha-device-diagnostic.jpg)
+
 ## What is decoded
 
 Setpoint, power state, water / air / suction / defrost / discharge temperatures,
@@ -126,8 +134,13 @@ is a related project for the ECOLO-80 with different interface hardware.
 
 ## How this was made
 
+<<<<<<< Updated upstream
 The author is an electronics technician by training, working as a cable-TV maintenance technician, and not a professional programmer.
 The method was physical and measured: unplug sensors one
+=======
+The author is an electronics technician by training, working as a cable-TV
+maintenance technician, and not a professional programmer. The method was physical and measured: unplug sensors one
+>>>>>>> Stashed changes
 at a time, open the safety contacts, press keypad buttons with a stopwatch, log the
 bus, and compare against independent temperature probes. The **code and the
 write-up were produced with AI assistance (Anthropic's Claude)**, working from
