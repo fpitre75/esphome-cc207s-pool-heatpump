@@ -63,6 +63,17 @@ confirmé) et **P7 n'existe pas sur le bus** : c'est le clavier qui l'affiche.
 Les deux fichiers d'exemple passent `esphome config` (ESPHome 2026.10.2). Le
 firmware lui-même n'est pas testé automatiquement.
 
+## Autres marques (non vérifié)
+
+Le même contrôleur Guangdong Chico CC207S et le même clavier semblent montés sur
+beaucoup de thermopompes de marques différentes (Turcotte, type Hayward, Jacuzzi
+vendue par Club Piscine, Fairland en Australie, …). Le clavier est un indice
+pour reconnaître la famille, mais **pas une preuve** que le protocole est le même :
+seule la TTi ECOLO 50 avec une CC207S-V2.0 a été testée. Détails dans la
+[section 11 du protocole](docs/CC207S-protocole.md#11-other-brands-and-models-unverified).
+Si vous en possédez une, ouvrez une issue avec une capture du bus, la photo de
+l'étiquette de la carte et du clavier.
+
 ## Comment ce projet a été fait
 
 L'auteur est technicien en électronique de formation, travaillant comme

@@ -116,6 +116,12 @@ other mains-powered equipment caused trouble in the field
 ## Known limitations
 
 * One unit tested. Other CC207S V2.x boards are unverified.
+* **Other brands (unverified).** The same Guangdong Chico controller and keypad
+  seem to be fitted to many rebadged heat pumps (Turcotte, Hayward-type,
+  Jacuzzi, Fairland in Australia, …). A matching keypad is a clue, not proof of
+  the same protocol. See
+  [other brands](docs/CC207S-protocole.md#11-other-brands-and-models-unverified)
+  and please open an issue with a capture if you try it.
 * Heat / cool mode, fan speed and installer parameters are not exposed.
 * Whether a latched P5 prevents starting has not been tested
   ([open questions](docs/CC207S-protocole.md#9-open-questions)).

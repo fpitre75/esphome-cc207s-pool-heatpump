@@ -20,6 +20,8 @@ Contents
 7. [Known controller behaviour](#7-known-controller-behaviour)
 8. [How the bits were confirmed](#8-how-the-bits-were-confirmed)
 9. [Open questions](#9-open-questions)
+10. Extra field notes
+11. [Other brands and models (unverified)](#11-other-brands-and-models-unverified)
 
 ---
 
@@ -379,3 +381,71 @@ separate inputs for the flow switch (FS, `E3`), low-pressure (LP, `E2`) and
 high-pressure (HP, `E1`) switches, a transformer in/out pair (CN2/CN8) and a 5 A
 fuse. Whether other board generations (V4.4, V2.1, V2.3) speak the same bus
 protocol has **not** been checked.
+
+### Keypad board (author's unit)
+
+The wall keypad (label `HL318030`) contains a board marked **CC343C-V2.1**
+(`W181204`). What is visible on the board (photos not included):
+
+* **Front:** a 4-digit seven-segment display, push-buttons `K1`–`K8` (`K3` and
+  `K4` footprints are empty), LEDs `LD1`–`LD8`, a buzzer (`BUZ`), a coin-cell
+  backup battery (`BT`, with "2032" printed beside it), an optocoupler (`IC2`),
+  a 78L05-type regulator (`IC1`) and a diode (`D1`). A 3-pad footprint labelled
+  `RCV` / `OUT` `GND` `VCC` (an infrared receiver position) and a 5-pad header
+  labelled `SDA`, `SCL`, `CN1`, `VCC`, `GND` are left unpopulated.
+* **Back:** the 3-pin connector `CN3` where the blue / yellow / brown cable
+  lands, a microcontroller `IC3` with the label `THL35GXK25.HEX <5D8E>`, a
+  16-pin chip (`IC5`), an 8-pin chip (`IC6`), transistors `Q1`–`Q7` and an empty
+  `IC7` footprint.
+
+What this suggests, without proving it: the keypad has its own microcontroller
+and a backed-up clock, which fits the finding that the schedule and the clock
+live in the keypad and not on the bus. The optocoupler and transistors are
+consistent with an isolated receive path and an open-collector transmit path on
+the single data wire. The controller firmware label (`THLCH15.HEX <5883>`) and
+this one share the same `THL…` naming. No datasheet or schematic was found, and
+the identity of `IC5` and `IC6` is unknown.
+
+## 11. Other brands and models (UNVERIFIED)
+
+**Nothing in this section has been tested.** Only the Turcotte TTi ECOLO 50 with a
+CC207S-V2.0 board has been captured and decoded. What follows is circumstantial
+evidence that the same controller family sits in many more machines than one
+Quebec brand. Visual similarity of a keypad is a lead, not proof of the same
+bus protocol.
+
+* **The keypad is the easiest way to recognise the family.** The same
+  white keypad, with a small display, up / down keys, three timer keys, a
+  power key and a HEAT lamp, is seen on the author's TTi and on other brands.
+  Variants exist with HEAT / COOL lamps. Their footprint and connector layout
+  look almost the same.
+* **Jacuzzi** swimming-pool heat pumps JA50 / JA65 / JA85 (sold in Quebec by Club
+  Piscine): the manual (not reproduced here) shows a main control board with the
+  same outputs `OUT1`–`OUT7`, a `Wire controller` on a 3-wire connector, a signal
+  cable allowed up to 50 m (AWG 20), and the same fault-code set:
+  `P1` water inlet sensor, `P2` coil (cooling), `P3` coil (heating),
+  `P4` compressor return gas, `P5` ambient, `P7` low ambient protection,
+  `E1` high pressure, `E2` low pressure, `E3` water flow, `E4` power / phase loss,
+  `E8` controller communication failure, defrost lamp flashing. This matches the
+  bit map in section 5, and supports the finding that `P7` is a keypad-side
+  protection with no bus bit (section 6.1). `E8` is probably the keypad losing the
+  bus; it is not a telemetry bit.
+* **Hayward** (HP50A-type keypads) and similar keypads: same look and same
+  family of controller, protocol not compared.
+* **Fairland / Australia:** a public post (Pool Owners Australia group, May 2025)
+  shows a keypad of the same style with a HEAT lamp, whose back carries the
+  maker's marking **CHICO** and a date code (2014-12), on a **Fairland** heat pump,
+  with the owner saying it was used on other brands too. This suggests the
+  Guangdong Chico controller is an OEM part fitted to many brands, sold in
+  Australia as well as in North America, and has been in production for years.
+* **Consequence:** the brand on the machine tells little. What counts is the
+  controller (`CC207S` and its version) and the keypad. Different versions
+  (the author has seen photos of other `CC207S V x.x` boards with the same relay
+  layout) may use the same frames or may not.
+
+**How to help:** if you own one of these machines, capture the bus (see section 1
+for the wiring and `examples/heatpump.yaml` with logging) and open an issue with the
+board label, the keypad photo, the heat pump brand and a few `0xDD` / `0xD2`
+frames. Matching checksums on a frame of 14 bytes with the same layout would be
+the first real evidence.
+
